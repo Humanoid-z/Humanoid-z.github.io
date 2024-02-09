@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Hello World</title>
+    <url>/2024/02/09/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a
+href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a
+href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>v-prediction</title>
+    <url>/2024/02/09/%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/v-prediction/</url>
+    <content><![CDATA[<h1 id="v-prediction与mathbfepsilon-prediction">v-prediction与<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction</h1>
+<p>v-prediction，<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction与<span
+class="math inline">\(x\)</span>-prediction指的是在扩散模型的训练中，神经网络模型直接预测的是速度(velocity)，噪声<span
+class="math inline">\(\mathbf{\epsilon}\)</span>还是原始特征<span
+class="math inline">\(x_0\)</span>。Stable Diffusion的<a
+href="https://github.com/Stability-AI/stablediffusion/blob/main/ldm/models/diffusion/ddpm.py#L380">DDPM实现</a>提供了以上三种预测目标的选择</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_v</span>(<span class="params">self, x, noise, t</span>):</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">                extract_into_tensor(self.sqrt_alphas_cumprod, t, x.shape) * noise -</span><br><span class="line">                extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x.shape) * x</span><br><span class="line">        )</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">p_losses</span>(<span class="params">self, x_start, t, noise=<span class="literal">None</span></span>):</span><br><span class="line">    noise = default(noise, <span class="keyword">lambda</span>: torch.randn_like(x_start))</span><br><span class="line">    x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)</span><br><span class="line">    model_out = self.model(x_noisy, t)</span><br><span class="line"></span><br><span class="line">    loss_dict = &#123;&#125;</span><br><span class="line">    <span class="keyword">if</span> self.parameterization == <span class="string">&quot;eps&quot;</span>:</span><br><span class="line">        target = noise</span><br><span class="line">    <span class="keyword">elif</span> self.parameterization == <span class="string">&quot;x0&quot;</span>:</span><br><span class="line">        target = x_start</span><br><span class="line">    <span class="keyword">elif</span> self.parameterization == <span class="string">&quot;v&quot;</span>:</span><br><span class="line">        target = self.get_v(x_start, noise, t)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> NotImplementedError(<span class="string">f&quot;Parameterization <span class="subst">&#123;self.parameterization&#125;</span> not yet supported&quot;</span>)</span><br><span class="line">    loss = self.get_loss(model_out, target, mean=<span class="literal">False</span>).mean(dim=[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br></pre></td></tr></table></figure>
+<p>DDPM的作者指出通过将均值参数化直接预测噪声并忽略损失函数的权重进行训练能够获得更好的生成质量。</p>
+<p><span class="math display">\[
+\begin{equation}L_{\text {simple }}=E_{t, x_{0},
+\epsilon}[\|\epsilon-\hat\epsilon_{\theta}(x_{t})\|^{2}]\end{equation}
+\]</span> 目前使用最多的是<span
+class="math inline">\(\mathbf{\epsilon}\)</span>​-prediction。</p>
+<p>设数据x从时间步0到t的gaussian transition为：<span
+class="math inline">\(q(\mathbf{x}_t \vert \mathbf{x}_0) =
+\mathcal{N}(\mathbf{x}_t; \alpha_t
+\mathbf{x}_0,\sigma^2_t\mathbf{I})\)</span>，并且<span
+class="math inline">\(\alpha_t^2+\sigma^2_t=1\)</span></p>
+<p>则v-prediction与<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction以及x-prediction的关系有
+<span class="math display">\[
+\begin{align}\hat\epsilon_{\theta}(\mathbf{x}_{t})=(\mathbf{x}_{t}-\alpha_{t}\mathbf{\hat
+x}_\theta(\mathbf{x}_{t}))/\sigma_{t}\\
+\hat v_{\theta}(\mathbf{x}_{t})=\alpha_{t} \hat
+\epsilon_{\theta}(\mathbf{x}_{t})-\sigma_{t} \hat
+x_{\theta}(\mathbf{x}_{t})
+\end{align}
+\]</span></p>
+<p>定义信噪比<span class="math inline">\(\text{SNR}=\textstyle
+\alpha_{t}^{2}/\sigma_{t}^{2}\)</span>，直观上v-prediction在低信噪比情况下偏向预测<span
+class="math inline">\(x_0\)</span>，在高信噪比情况下偏向预测噪声<span
+class="math inline">\(\mathbf{\epsilon}\)</span>，总是预测更加难的部分。</p>
+<p>目前v-prediction主要应用在减少扩散模型采样步骤的模型蒸馏学习上。</p>
+<h2 id="v-prediction与扩散模型的蒸馏">v-prediction与扩散模型的蒸馏</h2>
+<p>v-prediction在[1]被首次提出，该论文提出的方法为渐进式蒸馏，思想是将训练过的教师扩散模型蒸馏成更快的学生模型（只需一半的采样步骤），然后将学生模型作为新的教师模型并不断重复该步骤，每次减少一半的采样步骤。该方法得到的模型可以只用4
+或 8 个采样步骤生成高质量的结果。</p>
+<p>作者指出在<strong>知识蒸馏的场景下<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction
+不适合作为训练目标</strong>。一般情况下<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction可以看作隐式的<span
+class="math inline">\(\bf x\)</span>-prediction，即<span
+class="math inline">\(\hat{\bf x}_{\theta}({\bf
+x}_{t})=\frac{1}{\alpha_{t}}({\bf
+x}_{t}-\sigma_t\hat{\epsilon}_{\theta}({\bf
+x}_{t}))\)</span>，可以等效地视为对于<span
+class="math inline">\(x_0\)</span>的加权重建损失： <span
+class="math display">\[
+\begin{equation}
+{\cal L}_\theta=\|\epsilon-\hat{\epsilon}_\theta({\bf
+x}_{t})\|_{2}^{2}=\left\|\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\bf
+x_0})-\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\hat{\bf
+x}}_{\theta}({\bf
+x}_{t}))\right\|_{2}^{2}=\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\|{\bf
+x_0}-{\hat{\bf x}}_{\theta}({\bf x}_{t})\|_{2}^{2}
+\end{equation}
+\]</span>
+训练原始扩散模型时以及渐进蒸馏刚刚开始时，模型会在各种信噪比<span
+class="math inline">\(\textstyle
+\alpha_{t}^{2}/\sigma_{t}^{2}\)</span>下进行训练，但随着不断蒸馏，会以越来越低的信噪比进行训练（注：该方法将最高时间步的信噪比设为0，即
+<span class="math inline">\(\alpha_1\)</span> =
+0，随着蒸馏减少采样步骤，在2步采样时0信噪比的情况占一半）。随着信噪比趋于零，神经网络的输出<span
+class="math inline">\(\epsilon_{\theta}(\mathbf{x}_{t})\)</span>的微小变化对隐式预测<span
+class="math inline">\(x_0\)</span>的影响逐渐放大，因为<span
+class="math inline">\(\hat{\bf x}_{\theta}({\bf
+x}_{t})=\frac{1}{\alpha_{t}}({\bf
+x}_{t}-\sigma_t\hat{\epsilon}_{\theta}({\bf x}_{t}))\)</span>，随着<span
+class="math inline">\(\alpha_{t}\rarr0\)</span>，误差也被放大。当采取多步采样时不会造成很大影响，因为早期预测失误的影响受到<span
+class="math inline">\(x_t\)</span>迭代剪裁的限制，并且之后的更新可以纠正错误，但随着采样步骤的减少，低信噪比预测的误差影响越来越大。在蒸馏到单个采样步的时候，模型的输入为纯噪声，对应于信噪比为零，即<span
+class="math inline">\(\alpha_t=0,\sigma_t=1\)</span>。在这种极端情况下，<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction 和 <span
+class="math inline">\(\bf x\)</span>-prediction
+之间的联系完全崩溃：观测数据 <span class="math inline">\(x_t\)</span>
+不再提供<span class="math inline">\(x_0\)</span>的信息，并且<span
+class="math inline">\(\epsilon_{\theta}(\mathbf{x}_{t})\)</span>不再隐式预测<span
+class="math inline">\(x_0\)</span>。对于<span
+class="math inline">\(x_0\)</span>的重建损失在0信噪比下也为0（模型只会输出输入的噪声）。因此单独预测噪声无法从数据中进行学习。</p>
+<p>为了使蒸馏发挥作用，需要在SNR变化时能够保持稳定地隐式预测 <span
+class="math inline">\(\hat{\bf x}_{\theta}({\bf x}_{t})\)</span>
+的方式对扩散模型进行参数化。作者提供了以下适用于渐进式蒸馏的选项：</p>
+<ul>
+<li><p>模型直接预测<span class="math inline">\(x_0\)</span>。</p></li>
+<li><p>模型同时预测<span class="math inline">\(x_0\)</span>和<span
+class="math inline">\(\mathbf{\epsilon}\)</span>，然后通过 <span
+class="math inline">\(\hat{\mathbf{x}}_0=\sigma_{t}^{2}
+\tilde{\mathbf{x}}_{\theta}\left(\mathbf{x}_{t}\right)+\alpha_{t}\left(\mathbf{x}_{t}-\sigma_{t}
+\tilde{\epsilon}_{\theta}\left(\mathbf{x}_{t}\right)\right)\)</span>合并预测，从而在直接预测
+<span class="math inline">\(x_0\)</span> 和通过<span
+class="math inline">\(\mathbf{\epsilon}\)</span>预测之间平滑地进行插值。</p></li>
+<li><p>预测 <span class="math inline">\(v_t=\alpha_{t}
+\epsilon-\sigma_{t} x_0\)</span>，得到<span class="math inline">\(\hat
+x_0=\alpha_{t} x_t-\sigma_{t} \hat
+v_{\theta}(\mathbf{x}_{t})\)</span>。</p></li>
+</ul>
+<p>根据式(2)，v-prediction对应的关于<span
+class="math inline">\(x_0\)</span>的加权重建损失如下：</p>
+<p><span class="math display">\[
+\begin{equation}
+L_{\theta}=\big||{\bf v}_{t}\,-\,\hat{\bf
+v}_{t}\,||_{2}^{2}=\big(1\,+\,\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\big)||{\bf
+x_0}\,-\,{\hat{\bf x}}_{\theta}({\bf x}_{t})\vert|^{2}
+\end{equation}
+\]</span> v-prediction关于<span
+class="math inline">\(x_0\)</span>重建损失权重始终能够在1以上</p>
+<h2 id="v-prediction的推导">v-prediction的推导</h2>
+<p>首先定义<span
+class="math inline">\(\phi_{t}=\mathrm{arctan}({\sigma}_{t}/\alpha_{t})\)</span>，由三角函数关系，<span
+class="math inline">\(\alpha_{t}=\mathrm{cos}(\phi_{t}),\sigma_{t}=\mathrm{sin}(\phi_{t})\)</span></p>
+<p>对于一个方差保持(VP)扩散过程，可以用<span
+class="math inline">\(\phi\)</span>定义<span
+class="math inline">\(x_t\)</span>：<span
+class="math inline">\(x_\phi=\mathrm{cos}(\phi)x_0+\mathrm{sin}(\phi)\epsilon\)</span>，则可以导出关于<span
+class="math inline">\(x_\phi\)</span>的速度概念： <span
+class="math display">\[
+\begin{equation}
+\mathbf{v}_{\phi}\equiv{\frac{d\mathbf{x}_{\phi}}{d\phi}}={\frac{d\cos(\phi)}{d\phi}}\mathbf{x_0}+{\frac{d\sin(\phi)}{d\phi}}\epsilon=\cos(\phi)\epsilon-\sin(\phi)\mathbf{x_0}
+\end{equation}
+\]</span></p>
+<p>用t表示则为：<span class="math inline">\(v_t=\alpha_{t}
+\epsilon-\sigma_{t} x_0\)</span></p>
+<p><span class="math inline">\(x_0\)</span>与v的关系推导如下： <span
+class="math display">\[
+\begin{equation}
+\begin{aligned}
+\sin (\phi) \mathbf{x_0} &amp; =\cos (\phi) \epsilon-\mathbf{v}_{\phi}
+\\
+&amp; =\frac{\cos (\phi)}{\sin (\phi)}(\mathbf{x_\phi}-\cos (\phi)
+\mathbf{x_0})-\mathbf{v}_{\phi} \\
+\sin ^{2}(\phi) \mathbf{x_0} &amp; =\cos (\phi) \mathbf{x_\phi}-\cos
+^{2}(\phi) \mathbf{x_0}-\sin (\phi) \mathbf{v}_{\phi} \\
+\left(\sin ^{2}(\phi)+\cos ^{2}(\phi)\right) \mathbf{x_0} &amp;
+=\mathbf{x_0}=\cos (\phi) \mathbf{x_\phi}-\sin (\phi) \mathbf{v}_{\phi},
+\end{aligned}
+\end{equation}
+\]</span> 用t表示为：<span class="math inline">\(\mathbf{x_0}=\alpha_{t}
+\mathbf{x_t}-\sigma_{t} \mathbf{v}_{t},\)</span></p>
+<h2 id="总结">总结</h2>
+<p><span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction和v-prediction的区别一个是在训练目标对应于<span
+class="math inline">\(x_0\)</span>的加权重建损失： <span
+class="math display">\[
+\begin{equation}
+\|\epsilon-\hat{\epsilon}_\theta({\bf
+x}_{t})\|_{2}^{2}=\left\|\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\bf
+x_0})-\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\hat{\bf
+x}}_{\theta}({\bf
+x}_{t}))\right\|_{2}^{2}=\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\|{\bf
+x_0}-{\hat{\bf x}}_{\theta}({\bf x}_{t})\|_{2}^{2}
+\end{equation}
+\]</span></p>
+<p><span class="math display">\[
+\begin{equation}
+\big||{\bf v}_{t}\,-\,\hat{\bf
+v}_{t}\,||_{2}^{2}=\big(1\,+\,\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\big)||{\bf
+x_0}\,-\,{\hat{\bf x}}_{\theta}({\bf x}_{t})\vert|^{2}
+\end{equation}
+\]</span></p>
+<p>为了减少训练测试差异，现在关于扩散模型的工作普遍在最后的时间步采用0信噪比。在0信噪比条件下<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction完全不能从训练数据<span
+class="math inline">\(x_0\)</span>进行学习，该训练目标只是让模型直接输出输入的噪声<span
+class="math inline">\(\mathbf{\epsilon}\)</span>，而v-prediction依然要求模型建立从<span
+class="math inline">\(\mathbf{\epsilon}\)</span>到<span
+class="math inline">\(x_0\)</span>的映射。这对蒸馏扩散模型，将采样步骤降到个位数是比较关键的，因为0信噪比所占比重较大。</p>
+<p>第二个区别是v-prediction相当于同时对<span
+class="math inline">\(\mathbf{\epsilon}\)</span>和<span
+class="math inline">\(x_0\)</span>预测，并且是关于信噪比自适应的，即<span
+class="math inline">\(v_t=\alpha_{t} \epsilon-\sigma_{t}
+x_0\)</span>。当信噪比高时，<span
+class="math inline">\(\mathbf{\epsilon}\)</span>更难预测，v-prediction就偏向于预测<span
+class="math inline">\(\mathbf{\epsilon}\)</span>；信噪比低时偏向预测<span
+class="math inline">\(x_0\)</span>。目前普遍使用更大规模参数的模型，这种方式增加了训练难度，可以减少过拟合，如stable
+diffusion最新提供了v-prediction的训练版本。</p>
+<h2 id="引用">引用</h2>
+<p>[1] Salimans T, Ho J. Progressive distillation for fast sampling of
+diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
+]]></content>
+      <categories>
+        <category>生成模型</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>博客公式编号</title>
+    <url>/2024/02/09/%E5%8D%9A%E5%AE%A2/%E5%8D%9A%E5%AE%A2%E5%85%AC%E5%BC%8F%E7%BC%96%E5%8F%B7/</url>
+    <content><![CDATA[<p>修改next主题配置文件<code>\themes\next\_config.yml</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Math Formulas Render Support</span><br><span class="line">math:</span><br><span class="line">  # Default (true) will load mathjax / katex script on demand.</span><br><span class="line">  # That is it only render those page which has `mathjax: true` in Front-matter.</span><br><span class="line">  # If you set it to false, it will load mathjax / katex srcipt EVERY PAGE.</span><br><span class="line">  per_page: false</span><br><span class="line"></span><br><span class="line">  # hexo-renderer-pandoc (or hexo-renderer-kramed) required for full MathJax support.</span><br><span class="line">  mathjax:</span><br><span class="line">    enable: true</span><br><span class="line">    tags: all	#不用ams</span><br><span class="line">    # See: https://mhchem.github.io/MathJax-mhchem/</span><br><span class="line">    mhchem: false</span><br></pre></td></tr></table></figure>
+<p>所有公式用</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">\begin&#123;equation&#125;</span><br><span class="line">\end&#123;equation&#125;</span><br></pre></td></tr></table></figure>
+<p>多行公式用</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">\begin&#123;equation&#125;</span><br><span class="line">\begin&#123;aligned&#125;</span><br><span class="line">\end&#123;aligned&#125;</span><br><span class="line">\end&#123;equation&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>博客配置</category>
+      </categories>
+  </entry>
+</search>

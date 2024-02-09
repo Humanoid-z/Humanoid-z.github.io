@@ -17,22 +17,22 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="v-prediction与\(\mathbf{\epsilon}\)-prediction v-prediction，\(\mathbf{\epsilon}\)-prediction与\(x\)-prediction指的是在扩散模型的训练中，神经网络模型直接预测的是速度(velocity)，噪声\(\mathbf{\epsilon}\)还是原始特征\(x_0\)。Stable Diffusion">
 <meta property="og:type" content="article">
 <meta property="og:title" content="v-prediction">
-<meta property="og:url" content="http://example.com/2024/02/09/v-prediction/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:url" content="http://example.com/2024/02/09/%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/v-prediction/index.html">
+<meta property="og:site_name" content="wlf&#39;s blog">
 <meta property="og:description" content="v-prediction与\(\mathbf{\epsilon}\)-prediction v-prediction，\(\mathbf{\epsilon}\)-prediction与\(x\)-prediction指的是在扩散模型的训练中，神经网络模型直接预测的是速度(velocity)，噪声\(\mathbf{\epsilon}\)还是原始特征\(x_0\)。Stable Diffusion">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-02-09T05:10:24.000Z">
-<meta property="article:modified_time" content="2024-02-09T05:33:37.160Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:modified_time" content="2024-02-09T06:52:28.154Z">
+<meta property="article:author" content="Mr.Wen">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2024/02/09/v-prediction/">
+<link rel="canonical" href="http://example.com/2024/02/09/%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/v-prediction/">
 
 
 <script id="page-configurations">
@@ -45,7 +45,7 @@
   };
 </script>
 
-  <title>v-prediction | Hexo</title>
+  <title>v-prediction | wlf's blog</title>
   
 
 
@@ -96,13 +96,14 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Hexo</h1>
+      <h1 class="site-title">wlf's blog</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
   </div>
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -117,16 +118,53 @@
     <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
 
 </div>
     </header>
@@ -150,16 +188,16 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/02/09/v-prediction/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/02/09/%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/v-prediction/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="Mr.Wen">
       <meta itemprop="description" content="">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="wlf's blog">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -174,7 +212,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2024-02-09 13:10:24 / 修改时间：13:33:37" itemprop="dateCreated datePublished" datetime="2024-02-09T13:10:24+08:00">2024-02-09</time>
+              <time title="创建时间：2024-02-09 13:10:24 / 修改时间：14:52:28" itemprop="dateCreated datePublished" datetime="2024-02-09T13:10:24+08:00">2024-02-09</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -206,12 +244,12 @@ class="math inline">\(\mathbf{\epsilon}\)</span>还是原始特征<span
 class="math inline">\(x_0\)</span>。Stable Diffusion的<a
 target="_blank" rel="noopener" href="https://github.com/Stability-AI/stablediffusion/blob/main/ldm/models/diffusion/ddpm.py#L380">DDPM实现</a>提供了以上三种预测目标的选择</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_v</span>(<span class="params">self, x, noise, t</span>):</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">                extract_into_tensor(self.sqrt_alphas_cumprod, t, x.shape) * noise -</span><br><span class="line">                extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x.shape) * x</span><br><span class="line">        )</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">p_losses</span>(<span class="params">self, x_start, t, noise=<span class="literal">None</span></span>):</span><br><span class="line">    noise = default(noise, <span class="keyword">lambda</span>: torch.randn_like(x_start))</span><br><span class="line">    x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)</span><br><span class="line">    model_out = self.model(x_noisy, t)</span><br><span class="line"></span><br><span class="line">    loss_dict = &#123;&#125;</span><br><span class="line">    <span class="keyword">if</span> self.parameterization == <span class="string">&quot;eps&quot;</span>:</span><br><span class="line">        target = noise</span><br><span class="line">    <span class="keyword">elif</span> self.parameterization == <span class="string">&quot;x0&quot;</span>:</span><br><span class="line">        target = x_start</span><br><span class="line">    <span class="keyword">elif</span> self.parameterization == <span class="string">&quot;v&quot;</span>:</span><br><span class="line">        target = self.get_v(x_start, noise, t)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> NotImplementedError(<span class="string">f&quot;Parameterization <span class="subst">&#123;self.parameterization&#125;</span> not yet supported&quot;</span>)</span><br><span class="line">    loss = self.get_loss(model_out, target, mean=<span class="literal">False</span>).mean(dim=[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br></pre></td></tr></table></figure>
-<p>DDPM的作者指出通过将均值参数化直接预测噪声并忽略损失函数的权重进行训练能够获得更好的生成质量。
-<span class="math display">\[
-L_{\text {simple }}=E_{t, x_{0},
-\epsilon}[\|\epsilon-\hat\epsilon_{\theta}(x_{t})\|^{2}]
+<p>DDPM的作者指出通过将均值参数化直接预测噪声并忽略损失函数的权重进行训练能够获得更好的生成质量。</p>
+<p><span class="math display">\[
+\begin{equation}L_{\text {simple }}=E_{t, x_{0},
+\epsilon}[\|\epsilon-\hat\epsilon_{\theta}(x_{t})\|^{2}]\end{equation}
 \]</span> 目前使用最多的是<span
-class="math inline">\(\mathbf{\epsilon}\)</span>-prediction。</p>
+class="math inline">\(\mathbf{\epsilon}\)</span>​-prediction。</p>
 <p>设数据x从时间步0到t的gaussian transition为：<span
 class="math inline">\(q(\mathbf{x}_t \vert \mathbf{x}_0) =
 \mathcal{N}(\mathbf{x}_t; \alpha_t
@@ -246,12 +284,14 @@ x}_{t}-\sigma_t\hat{\epsilon}_{\theta}({\bf
 x}_{t}))\)</span>，可以等效地视为对于<span
 class="math inline">\(x_0\)</span>的加权重建损失： <span
 class="math display">\[
+\begin{equation}
 {\cal L}_\theta=\|\epsilon-\hat{\epsilon}_\theta({\bf
 x}_{t})\|_{2}^{2}=\left\|\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\bf
 x_0})-\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\hat{\bf
 x}}_{\theta}({\bf
 x}_{t}))\right\|_{2}^{2}=\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\|{\bf
 x_0}-{\hat{\bf x}}_{\theta}({\bf x}_{t})\|_{2}^{2}
+\end{equation}
 \]</span>
 训练原始扩散模型时以及渐进蒸馏刚刚开始时，模型会在各种信噪比<span
 class="math inline">\(\textstyle
@@ -293,9 +333,11 @@ v_{\theta}(\mathbf{x}_{t})\)</span>。</p></li>
 <p>根据式(2)，v-prediction对应的关于<span
 class="math inline">\(x_0\)</span>的加权重建损失如下：</p>
 <p><span class="math display">\[
+\begin{equation}
 L_{\theta}=\big||{\bf v}_{t}\,-\,\hat{\bf
 v}_{t}\,||_{2}^{2}=\big(1\,+\,\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\big)||{\bf
 x_0}\,-\,{\hat{\bf x}}_{\theta}({\bf x}_{t})\vert|^{2}
+\end{equation}
 \]</span> v-prediction关于<span
 class="math inline">\(x_0\)</span>重建损失权重始终能够在1以上</p>
 <h2 id="v-prediction的推导">v-prediction的推导</h2>
@@ -308,12 +350,15 @@ class="math inline">\(x_t\)</span>：<span
 class="math inline">\(x_\phi=\mathrm{cos}(\phi)x_0+\mathrm{sin}(\phi)\epsilon\)</span>，则可以导出关于<span
 class="math inline">\(x_\phi\)</span>的速度概念： <span
 class="math display">\[
+\begin{equation}
 \mathbf{v}_{\phi}\equiv{\frac{d\mathbf{x}_{\phi}}{d\phi}}={\frac{d\cos(\phi)}{d\phi}}\mathbf{x_0}+{\frac{d\sin(\phi)}{d\phi}}\epsilon=\cos(\phi)\epsilon-\sin(\phi)\mathbf{x_0}
+\end{equation}
 \]</span></p>
 <p>用t表示则为：<span class="math inline">\(v_t=\alpha_{t}
 \epsilon-\sigma_{t} x_0\)</span></p>
 <p><span class="math inline">\(x_0\)</span>与v的关系推导如下： <span
 class="math display">\[
+\begin{equation}
 \begin{aligned}
 \sin (\phi) \mathbf{x_0} &amp; =\cos (\phi) \epsilon-\mathbf{v}_{\phi}
 \\
@@ -324,6 +369,7 @@ class="math display">\[
 \left(\sin ^{2}(\phi)+\cos ^{2}(\phi)\right) \mathbf{x_0} &amp;
 =\mathbf{x_0}=\cos (\phi) \mathbf{x_\phi}-\sin (\phi) \mathbf{v}_{\phi},
 \end{aligned}
+\end{equation}
 \]</span> 用t表示为：<span class="math inline">\(\mathbf{x_0}=\alpha_{t}
 \mathbf{x_t}-\sigma_{t} \mathbf{v}_{t},\)</span></p>
 <h2 id="总结">总结</h2>
@@ -331,17 +377,21 @@ class="math display">\[
 class="math inline">\(\mathbf{\epsilon}\)</span>-prediction和v-prediction的区别一个是在训练目标对应于<span
 class="math inline">\(x_0\)</span>的加权重建损失： <span
 class="math display">\[
+\begin{equation}
 \|\epsilon-\hat{\epsilon}_\theta({\bf
 x}_{t})\|_{2}^{2}=\left\|\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\bf
 x_0})-\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\hat{\bf
 x}}_{\theta}({\bf
 x}_{t}))\right\|_{2}^{2}=\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\|{\bf
 x_0}-{\hat{\bf x}}_{\theta}({\bf x}_{t})\|_{2}^{2}
+\end{equation}
 \]</span></p>
 <p><span class="math display">\[
+\begin{equation}
 \big||{\bf v}_{t}\,-\,\hat{\bf
 v}_{t}\,||_{2}^{2}=\big(1\,+\,\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\big)||{\bf
 x_0}\,-\,{\hat{\bf x}}_{\theta}({\bf x}_{t})\vert|^{2}
+\end{equation}
 \]</span></p>
 <p>为了减少训练测试差异，现在关于扩散模型的工作普遍在最后的时间步采用0信噪比。在0信噪比条件下<span
 class="math inline">\(\mathbf{\epsilon}\)</span>-prediction完全不能从训练数据<span
@@ -379,7 +429,10 @@ diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
     <a href="/2024/02/09/hello-world/" rel="prev" title="Hello World">
       <i class="fa fa-chevron-left"></i> Hello World
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2024/02/09/%E5%8D%9A%E5%AE%A2/%E5%8D%9A%E5%AE%A2%E5%85%AC%E5%BC%8F%E7%BC%96%E5%8F%B7/" rel="next" title="博客公式编号">
+      博客公式编号 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -444,7 +497,7 @@ diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">John Doe</p>
+  <p class="site-author-name" itemprop="name">Mr.Wen</p>
   <div class="site-description" itemprop="description"></div>
 </div>
 <div class="site-state-wrap motion-element">
@@ -452,13 +505,15 @@ diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">1</span>
-        <span class="site-state-item-name">分类</span>
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
       </div>
   </nav>
 </div>
@@ -488,9 +543,9 @@ diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">Mr.Wen</span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
   </div>
 
         
@@ -529,6 +584,10 @@ diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
 
 
 
+  
+<script src="/js/local-search.js"></script>
+
+
 
 
 
@@ -543,6 +602,59 @@ diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
