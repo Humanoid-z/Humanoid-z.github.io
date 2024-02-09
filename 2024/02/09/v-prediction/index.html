@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="v-prediction与\(\mathbf{\epsilon}\)-prediction v-prediction，\(\mathbf{\epsilon}\)-prediction与\(x\)-prediction指的是在扩散模型的训练中，神经网络模型直接预测的是速度(velocity)，噪声\(\mathbf{\epsilon}\)还是原始特征\(x_0\)。Stable Diffusion">
+<meta property="og:type" content="article">
+<meta property="og:title" content="v-prediction">
+<meta property="og:url" content="http://example.com/2024/02/09/v-prediction/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="v-prediction与\(\mathbf{\epsilon}\)-prediction v-prediction，\(\mathbf{\epsilon}\)-prediction与\(x\)-prediction指的是在扩散模型的训练中，神经网络模型直接预测的是速度(velocity)，噪声\(\mathbf{\epsilon}\)还是原始特征\(x_0\)。Stable Diffusion">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-02-09T05:10:24.000Z">
+<meta property="article:modified_time" content="2024-02-09T05:33:37.160Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2024/02/09/v-prediction/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>v-prediction | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/02/09/v-prediction/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          v-prediction
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-02-09 13:10:24 / 修改时间：13:33:37" itemprop="dateCreated datePublished" datetime="2024-02-09T13:10:24+08:00">2024-02-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">生成模型</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="v-prediction与mathbfepsilon-prediction">v-prediction与<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction</h1>
+<p>v-prediction，<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction与<span
+class="math inline">\(x\)</span>-prediction指的是在扩散模型的训练中，神经网络模型直接预测的是速度(velocity)，噪声<span
+class="math inline">\(\mathbf{\epsilon}\)</span>还是原始特征<span
+class="math inline">\(x_0\)</span>。Stable Diffusion的<a
+target="_blank" rel="noopener" href="https://github.com/Stability-AI/stablediffusion/blob/main/ldm/models/diffusion/ddpm.py#L380">DDPM实现</a>提供了以上三种预测目标的选择</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_v</span>(<span class="params">self, x, noise, t</span>):</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">                extract_into_tensor(self.sqrt_alphas_cumprod, t, x.shape) * noise -</span><br><span class="line">                extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x.shape) * x</span><br><span class="line">        )</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">p_losses</span>(<span class="params">self, x_start, t, noise=<span class="literal">None</span></span>):</span><br><span class="line">    noise = default(noise, <span class="keyword">lambda</span>: torch.randn_like(x_start))</span><br><span class="line">    x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)</span><br><span class="line">    model_out = self.model(x_noisy, t)</span><br><span class="line"></span><br><span class="line">    loss_dict = &#123;&#125;</span><br><span class="line">    <span class="keyword">if</span> self.parameterization == <span class="string">&quot;eps&quot;</span>:</span><br><span class="line">        target = noise</span><br><span class="line">    <span class="keyword">elif</span> self.parameterization == <span class="string">&quot;x0&quot;</span>:</span><br><span class="line">        target = x_start</span><br><span class="line">    <span class="keyword">elif</span> self.parameterization == <span class="string">&quot;v&quot;</span>:</span><br><span class="line">        target = self.get_v(x_start, noise, t)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> NotImplementedError(<span class="string">f&quot;Parameterization <span class="subst">&#123;self.parameterization&#125;</span> not yet supported&quot;</span>)</span><br><span class="line">    loss = self.get_loss(model_out, target, mean=<span class="literal">False</span>).mean(dim=[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br></pre></td></tr></table></figure>
+<p>DDPM的作者指出通过将均值参数化直接预测噪声并忽略损失函数的权重进行训练能够获得更好的生成质量。
+<span class="math display">\[
+L_{\text {simple }}=E_{t, x_{0},
+\epsilon}[\|\epsilon-\hat\epsilon_{\theta}(x_{t})\|^{2}]
+\]</span> 目前使用最多的是<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction。</p>
+<p>设数据x从时间步0到t的gaussian transition为：<span
+class="math inline">\(q(\mathbf{x}_t \vert \mathbf{x}_0) =
+\mathcal{N}(\mathbf{x}_t; \alpha_t
+\mathbf{x}_0,\sigma^2_t\mathbf{I})\)</span>，并且<span
+class="math inline">\(\alpha_t^2+\sigma^2_t=1\)</span></p>
+<p>则v-prediction与<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction以及x-prediction的关系有
+<span class="math display">\[
+\begin{align}\hat\epsilon_{\theta}(\mathbf{x}_{t})=(\mathbf{x}_{t}-\alpha_{t}\mathbf{\hat
+x}_\theta(\mathbf{x}_{t}))/\sigma_{t}\\
+\hat v_{\theta}(\mathbf{x}_{t})=\alpha_{t} \hat
+\epsilon_{\theta}(\mathbf{x}_{t})-\sigma_{t} \hat
+x_{\theta}(\mathbf{x}_{t})
+\end{align}
+\]</span></p>
+<p>定义信噪比<span class="math inline">\(\text{SNR}=\textstyle
+\alpha_{t}^{2}/\sigma_{t}^{2}\)</span>，直观上v-prediction在低信噪比情况下偏向预测<span
+class="math inline">\(x_0\)</span>，在高信噪比情况下偏向预测噪声<span
+class="math inline">\(\mathbf{\epsilon}\)</span>，总是预测更加难的部分。</p>
+<p>目前v-prediction主要应用在减少扩散模型采样步骤的模型蒸馏学习上。</p>
+<h2 id="v-prediction与扩散模型的蒸馏">v-prediction与扩散模型的蒸馏</h2>
+<p>v-prediction在[1]被首次提出，该论文提出的方法为渐进式蒸馏，思想是将训练过的教师扩散模型蒸馏成更快的学生模型（只需一半的采样步骤），然后将学生模型作为新的教师模型并不断重复该步骤，每次减少一半的采样步骤。该方法得到的模型可以只用4
+或 8 个采样步骤生成高质量的结果。</p>
+<p>作者指出在<strong>知识蒸馏的场景下<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction
+不适合作为训练目标</strong>。一般情况下<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction可以看作隐式的<span
+class="math inline">\(\bf x\)</span>-prediction，即<span
+class="math inline">\(\hat{\bf x}_{\theta}({\bf
+x}_{t})=\frac{1}{\alpha_{t}}({\bf
+x}_{t}-\sigma_t\hat{\epsilon}_{\theta}({\bf
+x}_{t}))\)</span>，可以等效地视为对于<span
+class="math inline">\(x_0\)</span>的加权重建损失： <span
+class="math display">\[
+{\cal L}_\theta=\|\epsilon-\hat{\epsilon}_\theta({\bf
+x}_{t})\|_{2}^{2}=\left\|\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\bf
+x_0})-\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\hat{\bf
+x}}_{\theta}({\bf
+x}_{t}))\right\|_{2}^{2}=\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\|{\bf
+x_0}-{\hat{\bf x}}_{\theta}({\bf x}_{t})\|_{2}^{2}
+\]</span>
+训练原始扩散模型时以及渐进蒸馏刚刚开始时，模型会在各种信噪比<span
+class="math inline">\(\textstyle
+\alpha_{t}^{2}/\sigma_{t}^{2}\)</span>下进行训练，但随着不断蒸馏，会以越来越低的信噪比进行训练（注：该方法将最高时间步的信噪比设为0，即
+<span class="math inline">\(\alpha_1\)</span> =
+0，随着蒸馏减少采样步骤，在2步采样时0信噪比的情况占一半）。随着信噪比趋于零，神经网络的输出<span
+class="math inline">\(\epsilon_{\theta}(\mathbf{x}_{t})\)</span>的微小变化对隐式预测<span
+class="math inline">\(x_0\)</span>的影响逐渐放大，因为<span
+class="math inline">\(\hat{\bf x}_{\theta}({\bf
+x}_{t})=\frac{1}{\alpha_{t}}({\bf
+x}_{t}-\sigma_t\hat{\epsilon}_{\theta}({\bf x}_{t}))\)</span>，随着<span
+class="math inline">\(\alpha_{t}\rarr0\)</span>，误差也被放大。当采取多步采样时不会造成很大影响，因为早期预测失误的影响受到<span
+class="math inline">\(x_t\)</span>迭代剪裁的限制，并且之后的更新可以纠正错误，但随着采样步骤的减少，低信噪比预测的误差影响越来越大。在蒸馏到单个采样步的时候，模型的输入为纯噪声，对应于信噪比为零，即<span
+class="math inline">\(\alpha_t=0,\sigma_t=1\)</span>。在这种极端情况下，<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction 和 <span
+class="math inline">\(\bf x\)</span>-prediction
+之间的联系完全崩溃：观测数据 <span class="math inline">\(x_t\)</span>
+不再提供<span class="math inline">\(x_0\)</span>的信息，并且<span
+class="math inline">\(\epsilon_{\theta}(\mathbf{x}_{t})\)</span>不再隐式预测<span
+class="math inline">\(x_0\)</span>。对于<span
+class="math inline">\(x_0\)</span>的重建损失在0信噪比下也为0（模型只会输出输入的噪声）。因此单独预测噪声无法从数据中进行学习。</p>
+<p>为了使蒸馏发挥作用，需要在SNR变化时能够保持稳定地隐式预测 <span
+class="math inline">\(\hat{\bf x}_{\theta}({\bf x}_{t})\)</span>
+的方式对扩散模型进行参数化。作者提供了以下适用于渐进式蒸馏的选项：</p>
+<ul>
+<li><p>模型直接预测<span class="math inline">\(x_0\)</span>。</p></li>
+<li><p>模型同时预测<span class="math inline">\(x_0\)</span>和<span
+class="math inline">\(\mathbf{\epsilon}\)</span>，然后通过 <span
+class="math inline">\(\hat{\mathbf{x}}_0=\sigma_{t}^{2}
+\tilde{\mathbf{x}}_{\theta}\left(\mathbf{x}_{t}\right)+\alpha_{t}\left(\mathbf{x}_{t}-\sigma_{t}
+\tilde{\epsilon}_{\theta}\left(\mathbf{x}_{t}\right)\right)\)</span>合并预测，从而在直接预测
+<span class="math inline">\(x_0\)</span> 和通过<span
+class="math inline">\(\mathbf{\epsilon}\)</span>预测之间平滑地进行插值。</p></li>
+<li><p>预测 <span class="math inline">\(v_t=\alpha_{t}
+\epsilon-\sigma_{t} x_0\)</span>，得到<span class="math inline">\(\hat
+x_0=\alpha_{t} x_t-\sigma_{t} \hat
+v_{\theta}(\mathbf{x}_{t})\)</span>。</p></li>
+</ul>
+<p>根据式(2)，v-prediction对应的关于<span
+class="math inline">\(x_0\)</span>的加权重建损失如下：</p>
+<p><span class="math display">\[
+L_{\theta}=\big||{\bf v}_{t}\,-\,\hat{\bf
+v}_{t}\,||_{2}^{2}=\big(1\,+\,\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\big)||{\bf
+x_0}\,-\,{\hat{\bf x}}_{\theta}({\bf x}_{t})\vert|^{2}
+\]</span> v-prediction关于<span
+class="math inline">\(x_0\)</span>重建损失权重始终能够在1以上</p>
+<h2 id="v-prediction的推导">v-prediction的推导</h2>
+<p>首先定义<span
+class="math inline">\(\phi_{t}=\mathrm{arctan}({\sigma}_{t}/\alpha_{t})\)</span>，由三角函数关系，<span
+class="math inline">\(\alpha_{t}=\mathrm{cos}(\phi_{t}),\sigma_{t}=\mathrm{sin}(\phi_{t})\)</span></p>
+<p>对于一个方差保持(VP)扩散过程，可以用<span
+class="math inline">\(\phi\)</span>定义<span
+class="math inline">\(x_t\)</span>：<span
+class="math inline">\(x_\phi=\mathrm{cos}(\phi)x_0+\mathrm{sin}(\phi)\epsilon\)</span>，则可以导出关于<span
+class="math inline">\(x_\phi\)</span>的速度概念： <span
+class="math display">\[
+\mathbf{v}_{\phi}\equiv{\frac{d\mathbf{x}_{\phi}}{d\phi}}={\frac{d\cos(\phi)}{d\phi}}\mathbf{x_0}+{\frac{d\sin(\phi)}{d\phi}}\epsilon=\cos(\phi)\epsilon-\sin(\phi)\mathbf{x_0}
+\]</span></p>
+<p>用t表示则为：<span class="math inline">\(v_t=\alpha_{t}
+\epsilon-\sigma_{t} x_0\)</span></p>
+<p><span class="math inline">\(x_0\)</span>与v的关系推导如下： <span
+class="math display">\[
+\begin{aligned}
+\sin (\phi) \mathbf{x_0} &amp; =\cos (\phi) \epsilon-\mathbf{v}_{\phi}
+\\
+&amp; =\frac{\cos (\phi)}{\sin (\phi)}(\mathbf{x_\phi}-\cos (\phi)
+\mathbf{x_0})-\mathbf{v}_{\phi} \\
+\sin ^{2}(\phi) \mathbf{x_0} &amp; =\cos (\phi) \mathbf{x_\phi}-\cos
+^{2}(\phi) \mathbf{x_0}-\sin (\phi) \mathbf{v}_{\phi} \\
+\left(\sin ^{2}(\phi)+\cos ^{2}(\phi)\right) \mathbf{x_0} &amp;
+=\mathbf{x_0}=\cos (\phi) \mathbf{x_\phi}-\sin (\phi) \mathbf{v}_{\phi},
+\end{aligned}
+\]</span> 用t表示为：<span class="math inline">\(\mathbf{x_0}=\alpha_{t}
+\mathbf{x_t}-\sigma_{t} \mathbf{v}_{t},\)</span></p>
+<h2 id="总结">总结</h2>
+<p><span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction和v-prediction的区别一个是在训练目标对应于<span
+class="math inline">\(x_0\)</span>的加权重建损失： <span
+class="math display">\[
+\|\epsilon-\hat{\epsilon}_\theta({\bf
+x}_{t})\|_{2}^{2}=\left\|\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\bf
+x_0})-\frac{1}{\sigma_{t}}({\bf x}_{t}-\alpha_{t}{\hat{\bf
+x}}_{\theta}({\bf
+x}_{t}))\right\|_{2}^{2}=\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\|{\bf
+x_0}-{\hat{\bf x}}_{\theta}({\bf x}_{t})\|_{2}^{2}
+\]</span></p>
+<p><span class="math display">\[
+\big||{\bf v}_{t}\,-\,\hat{\bf
+v}_{t}\,||_{2}^{2}=\big(1\,+\,\frac{\alpha_{t}^{2}}{\sigma_{t}^{2}}\big)||{\bf
+x_0}\,-\,{\hat{\bf x}}_{\theta}({\bf x}_{t})\vert|^{2}
+\]</span></p>
+<p>为了减少训练测试差异，现在关于扩散模型的工作普遍在最后的时间步采用0信噪比。在0信噪比条件下<span
+class="math inline">\(\mathbf{\epsilon}\)</span>-prediction完全不能从训练数据<span
+class="math inline">\(x_0\)</span>进行学习，该训练目标只是让模型直接输出输入的噪声<span
+class="math inline">\(\mathbf{\epsilon}\)</span>，而v-prediction依然要求模型建立从<span
+class="math inline">\(\mathbf{\epsilon}\)</span>到<span
+class="math inline">\(x_0\)</span>的映射。这对蒸馏扩散模型，将采样步骤降到个位数是比较关键的，因为0信噪比所占比重较大。</p>
+<p>第二个区别是v-prediction相当于同时对<span
+class="math inline">\(\mathbf{\epsilon}\)</span>和<span
+class="math inline">\(x_0\)</span>预测，并且是关于信噪比自适应的，即<span
+class="math inline">\(v_t=\alpha_{t} \epsilon-\sigma_{t}
+x_0\)</span>。当信噪比高时，<span
+class="math inline">\(\mathbf{\epsilon}\)</span>更难预测，v-prediction就偏向于预测<span
+class="math inline">\(\mathbf{\epsilon}\)</span>；信噪比低时偏向预测<span
+class="math inline">\(x_0\)</span>。目前普遍使用更大规模参数的模型，这种方式增加了训练难度，可以减少过拟合，如stable
+diffusion最新提供了v-prediction的训练版本。</p>
+<h2 id="引用">引用</h2>
+<p>[1] Salimans T, Ho J. Progressive distillation for fast sampling of
+diffusion models[J]. arXiv preprint arXiv:2202.00512, 2022.</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/02/09/hello-world/" rel="prev" title="Hello World">
+      <i class="fa fa-chevron-left"></i> Hello World
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#v-prediction%E4%B8%8Emathbfepsilon-prediction"><span class="nav-number">1.</span> <span class="nav-text">v-prediction与\(\mathbf{\epsilon}\)-prediction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#v-prediction%E4%B8%8E%E6%89%A9%E6%95%A3%E6%A8%A1%E5%9E%8B%E7%9A%84%E8%92%B8%E9%A6%8F"><span class="nav-number">1.1.</span> <span class="nav-text">v-prediction与扩散模型的蒸馏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v-prediction%E7%9A%84%E6%8E%A8%E5%AF%BC"><span class="nav-number">1.2.</span> <span class="nav-text">v-prediction的推导</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8"><span class="nav-number">1.4.</span> <span class="nav-text">引用</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
